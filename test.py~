@@ -1,0 +1,27 @@
+from pandas.io.data import DataReader
+from datetime import datetime
+from Scraper
+import numpy
+
+
+
+
+tickers = ['LLL', 'GOOG', 'AAPL']
+data = {}
+
+start = datetime(2016, 1,1)
+end = datetime(2016,6,1)
+
+for ticker in tickers:
+  data[ticker] = Scraper.lookup(ticker, start, end)
+
+for ticker in tickers:
+  val = data[ticker]
+  mean = numpy.mean(val['Close'])
+  last = val['Close'][-1]
+
+  
+  print(ticker)
+  print(val['Close'][-1])
+  print(mean)
+
