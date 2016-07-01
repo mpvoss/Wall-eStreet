@@ -39,7 +39,7 @@ def loadDefaultAi():
   return AI.AI(initMaxLoss, initDesiredProfit, initBuyThreshold)
 
 def printProgress(population, count):
-  print("---------- Generation " + str(count) + " ----------")
+  print(util.centerText("Generation " + str(count)))
   population[0].printPerformance()
   population[1].printPerformance()
 
@@ -50,14 +50,24 @@ def printProgress(population, count):
 def updatePopulation(population, generation):
   size = util.GENERATION_SIZE - len(population)
   population += loadPopulation(population[0],generation,size/2)
-  population += loadPopulation(population[0],generation,size/2)
+  population += loadPopulation(population[1],generation,size/2)
 
   return population
 
+def printTrainingTimes(startSampleTime, endSampleTime,startTrainTime, endTrainTime):
+  print("Training time period used: " + util.prettyDate(startSampleTime) + " to " + util.prettyDate(endSampleTime))
+  print("Testing time period used: " + util.prettyDate(startTrainTime) + " to " + util.prettyDate(endTrainTime))
+
+
 
 def train():
+  util.printGreeting()
   population = loadPopulation(loadDefaultAi(), 0,util.GENERATION_SIZE)
-  trainingStocks = util.loadTrainingStocks()
+  a,b,c,d = util.getTrainingTimes()
+  printTrainingTimes(a,b,c,d)
+  trainingStocks = util.loadTrainingStocks(a,b,c,d)
+  util.printStockInfo(trainingStocks)
+
 
   for generation in range(util.MAX_GENERATIONS):
 
@@ -70,6 +80,5 @@ def train():
        
     for sample in population:
       sample.reset()
-
 
 train()

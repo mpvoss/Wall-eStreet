@@ -10,13 +10,13 @@ from pandas_datareader._utils import RemoteDataError
 DATA_TIMEFRAME_DAYS = 90
 MAX_NUM_TICKERS = 20
 MAX_HOLD_TIME_DAYS = 60
-MAX_GENERATIONS = 1000
+MAX_GENERATIONS = 100
 GENERATION_SIZE = 100
 NUM_STOCKS = 500
 MAX_HISTORY_DAYS = 365 * 5
 ANALYSIS_TIME_DAYS = 30 * 6
 
-# Buy thresh already percent
+# All percents
 DELTA_MAX_LOSS = 5
 DELTA_DESIRED_PROFIT = 2
 DELTA_BUY_THRESHOLD = 2
@@ -43,18 +43,21 @@ def getDataFile():
 def prettyDate(date):
   return date.strftime("%B %Y")
 
-def loadTrainingStocks():
-  stocks = []
-  startTimeframe = random.randrange(MAX_HISTORY_DAYS)
+def getTrainingTimes():
 
+  startTimeframe = random.randrange(MAX_HISTORY_DAYS)
   startSampleTime = datetime.now() - timedelta(startTimeframe)
   endSampleTime = startSampleTime + timedelta(ANALYSIS_TIME_DAYS)
   startTrainTime = endSampleTime
   endTrainTime = startTrainTime + timedelta(MAX_HOLD_TIME_DAYS)
 
-  print("Training time period used: " + prettyDate(startSampleTime) + " to " + prettyDate(endSampleTime))
-  print("Testing time period used: " + prettyDate(startTrainTime) + " to " + prettyDate(endTrainTime))
+  return (startSampleTime, endSampleTime, startTrainTime, endTrainTime)
 
+def loadTrainingStocks(startSampleTime, endSampleTime, startTrainTime, endTrainTime):
+  stocks = []
+
+  #print("Training time period used: " + prettyDate(startSampleTime) + " to " + prettyDate(endSampleTime))
+  #print("Testing time period used: " + prettyDate(startTrainTime) + " to " + prettyDate(endTrainTime))
 
   with open(getDataFile()) as csvfile:
     reader = csv.DictReader(csvfile)
@@ -73,11 +76,29 @@ def loadTrainingStocks():
         trainingStock = TrainingStock.TrainingStock(ticker, sampleData, trainingData)
 
         stocks.append(trainingStock)
-        trainingStock.printStats()
       except RemoteDataError:
         print("Error reading " + ticker + ", skipping")
   return stocks
-  
+
+
+def printGreeting():
+  print(centerText("-"))
+  print(centerTextNoWrap("Wall-e Street Stock Market AI"))
+  print(centerText("-"))
+ 
+
+
+def centerText(text):
+  return '{:-^80}'.format(text)
+
+def centerTextNoWrap(text):
+  return '{:^80}'.format(text)
+
+def printStockInfo(stocks):
+  print("\n")
+  print(centerTextNoWrap("Stock data used in this experiment"))
+  for stock in stocks: 
+    stock.printStats()
 
 def computeReturn(boughtAt, soldAt):
   return (soldAt - boughtAt)/boughtAt

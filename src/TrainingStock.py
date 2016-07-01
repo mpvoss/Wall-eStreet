@@ -1,11 +1,6 @@
 import numpy
+import sys
 class TrainingStock:
-  
-  # buy data
-  # hold data
-  # boughtAt val
-  # profit val
-
   def __init__(self, ticker, analysisData, trainData):
     self.ticker = ticker
     self.analysisData = analysisData
@@ -23,5 +18,6 @@ class TrainingStock:
   def printStats(self):
     mean = numpy.mean(self.analysisData)
     last = self.analysisData[-1]
-    print("[%s] Mean: %.2f, Current: %.2f" % (self.ticker,mean, last))
+    print("[{:5s}] Mean: {:6.2f}, Current: {:6.2f}".format(self.ticker,mean, last))
+   
 
