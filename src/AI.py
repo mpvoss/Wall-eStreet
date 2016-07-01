@@ -37,11 +37,8 @@ class AI:
   def computeReturn(self, boughtAt, trainData):
     for price in trainData:
       returnVal = util.computeReturn(boughtAt, price)
-      #print("return val: " + str(returnVal) + ", desProf " + str(self.desiredProfit) + ", maxLoss: " + str(self.maxLoss))
       if returnVal > self.desiredProfit or returnVal < self.maxLoss:
-        #print("Sold at " + str(price))
         return returnVal
-    #print("kept until the end")
     return util.computeReturn(boughtAt, trainData[-1])
 
   def analyze(self, stock):
@@ -56,9 +53,10 @@ class AI:
     self.score = numpy.mean(self.results)
 
   def printPerformance(self):
-    print("maxLoss: %.3f, desiredProfit: %.3f, buyThreshold: %.3f" % (self.maxLoss, self.desiredProfit, self.buyThreshold))
+    print("AI parameters: maxLoss[{}] desiredProfit[{}] buyThreshold[{}]".format(util.prettyPercent(self.maxLoss), util.prettyPercent(self.desiredProfit), util.prettyPercent(self.buyThreshold)))
     if len(self.results) > 0:
-      print("   %d stocks purchased, average return: %.3f" % (len(self.results), self.score))
+      score = self.score * 100
+      print("   %d stocks purchased, average return: %.3f%%" % (len(self.results), score))
     else:
       print("   No stocks purchased.")
 

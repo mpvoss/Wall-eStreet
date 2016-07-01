@@ -4,22 +4,27 @@ import random
 import TrainingStock
 import csv
 import os
+from pandas_datareader._utils import RemoteDataError
 
 ''' Constants ''' 
 DATA_TIMEFRAME_DAYS = 90
 MAX_NUM_TICKERS = 20
 MAX_HOLD_TIME_DAYS = 60
-MAX_GENERATIONS = 100
+MAX_GENERATIONS = 1000
 GENERATION_SIZE = 100
-DELTA_BUY_THRESHOLD = 0.05
-DELTA_MAX_LOSS = 5
-DELTA_DESIRED_PROFIT = 5
-INIT_BUY_THRESHOLD = -0.03
-INIT_DESIRED_PROFIT = 2
-INIT_MAX_LOSS = -2
 NUM_STOCKS = 500
 MAX_HISTORY_DAYS = 365 * 5
 ANALYSIS_TIME_DAYS = 30 * 6
+
+# Buy thresh already percent
+DELTA_MAX_LOSS = 5
+DELTA_DESIRED_PROFIT = 2
+DELTA_BUY_THRESHOLD = 2
+
+INIT_MAX_LOSS = -2
+INIT_DESIRED_PROFIT = 2
+INIT_BUY_THRESHOLD = -5
+
 
 ''' Utility methods '''
 def getStartTime():
@@ -28,10 +33,15 @@ def getStartTime():
 def getCurrentTime():
   return datetime.now()
 
+def prettyPercent(val):
+  return '{:.3f}%'.format(val)
+
 def getDataFile():
   val = os.path.join(os.path.dirname(__file__), '..','data','constituents.csv')
-  print val
   return val
+
+def prettyDate(date):
+  return date.strftime("%B %Y")
 
 def loadTrainingStocks():
   stocks = []
@@ -41,6 +51,9 @@ def loadTrainingStocks():
   endSampleTime = startSampleTime + timedelta(ANALYSIS_TIME_DAYS)
   startTrainTime = endSampleTime
   endTrainTime = startTrainTime + timedelta(MAX_HOLD_TIME_DAYS)
+
+  print("Training time period used: " + prettyDate(startSampleTime) + " to " + prettyDate(endSampleTime))
+  print("Testing time period used: " + prettyDate(startTrainTime) + " to " + prettyDate(endTrainTime))
 
 
   with open(getDataFile()) as csvfile:
@@ -53,14 +66,16 @@ def loadTrainingStocks():
       # Cols are Symbol, Name, Sector
       row = rows[random.randrange(NUM_STOCKS)]
       ticker = row['Symbol']
-      sampleData = Scraper.lookup(ticker, startSampleTime,endSampleTime)['Close']
-      trainingData = Scraper.lookup(ticker, startTrainTime,endTrainTime)['Close']
+      try:
+        sampleData = Scraper.lookup(ticker, startSampleTime,endSampleTime)['Close']
+        trainingData = Scraper.lookup(ticker, startTrainTime,endTrainTime)['Close']
         
-      trainingStock = TrainingStock.TrainingStock(ticker, sampleData, trainingData)
+        trainingStock = TrainingStock.TrainingStock(ticker, sampleData, trainingData)
 
-      stocks.append(trainingStock)
-      trainingStock.printStats()
-    
+        stocks.append(trainingStock)
+        trainingStock.printStats()
+      except RemoteDataError:
+        print("Error reading " + ticker + ", skipping")
   return stocks
   
 
