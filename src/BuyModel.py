@@ -1,7 +1,9 @@
 import numpy
-def shouldBuy(ticker, data):
-  mean = numpy.mean(data['Close'])
-  last = data['Close'][-1]
-
-  print(ticker + ": Mean: " + str(mean) + ", current: " + str(last)) 
-  return last < mean      
+import AI
+def shouldBuy(ai, data):
+  mean = numpy.mean(data)
+  last = data[-1]
+  #print(last)
+  #print(mean)
+  #print(str((last - mean)/mean))
+  return ((last - mean)/mean) > ai.buyThreshold     
