@@ -46,11 +46,11 @@ def train():
       sample.train(trainStocks)
 
 
+    print("---------- Generation " + str(generation) + " ----------")
     population.sort(key=operator.attrgetter('score'), reverse=True)
     population = population[0:2]
     population[0].printPerformance()
     population[1].printPerformance()
-    print("---------- Generation " + str(generation) + " ----------")
     
     size = util.GENERATION_SIZE - len(population)
     population += loadPopulation(population[0],generation,size/2)

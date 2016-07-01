@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import Scraper
+import random
 import TrainingStock
 import csv
 import os
@@ -7,15 +8,18 @@ import os
 ''' Constants ''' 
 DATA_TIMEFRAME_DAYS = 90
 MAX_NUM_TICKERS = 20
-MAX_HOLD_TIME_DAYS = 14
-MAX_GENERATIONS = 10
-GENERATION_SIZE = 10
-DELTA_BUY_THRESHOLD = 0.01
-DELTA_MAX_LOSS = 2
-DELTA_DESIRED_PROFIT = 2
-INIT_BUY_THRESHOLD = 0.05
+MAX_HOLD_TIME_DAYS = 60
+MAX_GENERATIONS = 100
+GENERATION_SIZE = 100
+DELTA_BUY_THRESHOLD = 0.05
+DELTA_MAX_LOSS = 5
+DELTA_DESIRED_PROFIT = 5
+INIT_BUY_THRESHOLD = -0.03
 INIT_DESIRED_PROFIT = 2
 INIT_MAX_LOSS = -2
+NUM_STOCKS = 500
+MAX_HISTORY_DAYS = 365 * 5
+ANALYSIS_TIME_DAYS = 30 * 6
 
 ''' Utility methods '''
 def getStartTime():
@@ -31,23 +35,31 @@ def getDataFile():
 
 def loadTrainingStocks():
   stocks = []
-  startSampleTime = datetime.now() - timedelta(104)
-  endSampleTime = datetime.now() - timedelta(14)
-  startTrainTime = datetime.now() - timedelta(14)
-  endTrainTime = datetime.now()
+  startTimeframe = random.randrange(MAX_HISTORY_DAYS)
+
+  startSampleTime = datetime.now() - timedelta(startTimeframe)
+  endSampleTime = startSampleTime + timedelta(ANALYSIS_TIME_DAYS)
+  startTrainTime = endSampleTime
+  endTrainTime = startTrainTime + timedelta(MAX_HOLD_TIME_DAYS)
+
 
   with open(getDataFile()) as csvfile:
     reader = csv.DictReader(csvfile)
+    rows = []
     for row in reader:
+      rows.append(row)
+
+    for i in range(MAX_NUM_TICKERS):
       # Cols are Symbol, Name, Sector
-      if len(stocks) < MAX_NUM_TICKERS:
-        ticker = row['Symbol']
-        sampleData = Scraper.lookup(ticker, startSampleTime,endSampleTime)['Close']
-        trainingData = Scraper.lookup(ticker, startTrainTime,endTrainTime)['Close']
+      row = rows[random.randrange(NUM_STOCKS)]
+      ticker = row['Symbol']
+      sampleData = Scraper.lookup(ticker, startSampleTime,endSampleTime)['Close']
+      trainingData = Scraper.lookup(ticker, startTrainTime,endTrainTime)['Close']
         
-        trainingStock = TrainingStock.TrainingStock(ticker, sampleData, trainingData)        
-        stocks.append(trainingStock)
-        trainingStock.printStats()
+      trainingStock = TrainingStock.TrainingStock(ticker, sampleData, trainingData)
+
+      stocks.append(trainingStock)
+      trainingStock.printStats()
     
   return stocks
   
