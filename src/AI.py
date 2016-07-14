@@ -41,6 +41,8 @@ class AI:
         if (retVal == 0):
             retVal = trainData[-1]
 
+
+
         diff = util.computeReturn(boughtAt, trainData[-1])
         if debug:
             print("Bought {} at ${} and sold at ${} for {} return ".format(ticker, boughtAt, retVal, util.prettyPercent(100*diff)))
@@ -58,13 +60,16 @@ class AI:
         if not self.results:
             self.score = 0
         else:
-            self.score = numpy.mean(self.results)
+            self.score = numpy.sum(self.results)
+
+    def printParameters(self):
+        return "AI parameters: maxLoss[{}] desiredProfit[{}] buyThreshold[{}]".format(util.prettyPercent(self.maxLoss), util.prettyPercent(self.desiredProfit), util.prettyPercent(self.buyThreshold))
 
     def printPerformance(self):
-        print("AI parameters: maxLoss[{}] desiredProfit[{}] buyThreshold[{}]".format(util.prettyPercent(self.maxLoss), util.prettyPercent(self.desiredProfit), util.prettyPercent(self.buyThreshold)))
+        print(self.printParameters())
         if len(self.results) > 0:
             score = self.score * 100
-            print("   %d stocks purchased, average return: %.3f%%" % (len(self.results), score))
+            print("   %d stocks purchased, total return: %.3f%%" % (len(self.results), numpy.sum(self.results)*100))
         else:
             print("   No stocks purchased. Score: {}".format(self.score))
 

@@ -11,22 +11,31 @@ import os
 DATA_TIMEFRAME_DAYS = 90
 MAX_NUM_TICKERS = 20
 MAX_HOLD_TIME_DAYS = 30*12
-MAX_GENERATIONS = 50
+MAX_GENERATIONS = 10
 GENERATION_SIZE = 100
 NUM_STOCKS = 500
 MAX_HISTORY_DAYS = 365 * 5
 TRAIN_TIME_DAYS = 6 * 30
 
 # All percents
-DELTA_MAX_LOSS = 10
-DELTA_DESIRED_PROFIT = 10
-DELTA_BUY_THRESHOLD = 10
+#DELTA_MAX_LOSS = 1
+#DELTA_DESIRED_PROFIT = 2
+#DELTA_BUY_THRESHOLD = 2
 
-INIT_MAX_LOSS = -2
-INIT_DESIRED_PROFIT = 2
-INIT_BUY_THRESHOLD = 1.1
+#INIT_MAX_LOSS = 2
+#INIT_DESIRED_PROFIT = 5
+#INIT_BUY_THRESHOLD = 1.1
 
-MUTATE_PROBABILITY = 0.8
+
+DELTA_MAX_LOSS = 5
+DELTA_DESIRED_PROFIT = 5
+DELTA_BUY_THRESHOLD = 5
+
+INIT_MAX_LOSS = 5
+INIT_DESIRED_PROFIT = 10
+INIT_BUY_THRESHOLD = 0
+
+MUTATE_PROBABILITY = 0.6
 
 ''' Utility methods '''
 def prettyPercent(val):
@@ -111,9 +120,29 @@ def mutateVal(baseVal, delta):
     else:
         return baseVal
 
-def graphResults(results):
-    results[:] = [x*100 for x in results]
-    plt.plot(results)
+def printScoreboard(agents):
+    print(centerText("Scoreboard start"))
+    for agent in agents:
+        print(agent.printParameters() + ": score " + str(agent.score))
+    print(centerText("Scoreboard end"))
+
+
+def graphResults(results,optimal):
+    plt.plot(results, c='r', ls='-',label="Performance")
+    plt.axhline(optimal,0,1, c='b', ls=':', label="Theoretical limit")
+
+    plt.legend(loc='upper left');
     plt.ylabel('Return %')
     plt.xlabel('Generation #')
+    print("Optimal: {}".format(optimal))
     plt.show()
+
+
+def printStockStats(stocks):
+    b = [(stock.ticker,  stock.maxProfit(), stock.printDeriv()) for stock in stocks]
+    b.sort(key=lambda tup: tup[2])
+    for a in b:
+        print("{} max prof: {}, deriv: {}".format(a[0], a[1], a[2]))
+#test = [1,2,3,4,5,6]
+##op = [4 ]
+#graphResults(test,op)

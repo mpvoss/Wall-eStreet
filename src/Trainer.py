@@ -1,6 +1,8 @@
 import AI
 import util
 import operator
+import numpy
+import TrainingStock
 
 def loadPopulation(baseline, generation, size):
     samples = []
@@ -24,21 +26,22 @@ def printProgress(population, count):
 
 def updatePopulation(population, generation):
     size = util.GENERATION_SIZE - len(population)
-    population += loadPopulation(population[0], generation, size / 2)
-    population += loadPopulation(population[1], generation, size / 2)
+    population += loadPopulation(population[0], generation, size / 3)
+    population += loadPopulation(population[1], generation, size / 3)
+    population += loadPopulation(loadDefaultAi(), generation, size / 3)
 
     return population
 
 def printTrainingTimes(startSampleTime, endSampleTime, startTrainTime, endTrainTime):
     print("Training time period used: " + util.prettyDate(startSampleTime) + " to " + util.prettyDate(endSampleTime))
-    print("Testing time period used: " + util.prettyDate(startTrainTime) + " to " + util.prettyDate(endTrainTime))
+    print("Validation time period used: " + util.prettyDate(startTrainTime) + " to " + util.prettyDate(endTrainTime))
 
 def train():
     util.printGreeting()
     population = loadPopulation(loadDefaultAi(), 0, util.GENERATION_SIZE)
 
-    a, b, c, d = util.getTrainingTimes()
-#    a, b, c, d = util.getTestTrainingTimes()
+#    a, b, c, d = util.getTrainingTimes()
+    a, b, c, d = util.getTestTrainingTimes()
 
     printTrainingTimes(a, b, c, d)
     trainingStocks = util.loadTrainingStocks(a, b, c, d)
@@ -48,19 +51,22 @@ def train():
 
     for generation in range(util.MAX_GENERATIONS):
         for sample in population:
+            sample.reset()
+
+        for sample in population:
             sample.train(trainingStocks, False)
 
         population.sort(key=operator.attrgetter('score'), reverse=True)
+#        util.printScoreboard(population)
         printProgress(population, generation)
 
         population = updatePopulation(population[0:2], generation)
 
-        best.append(population[0].score)
+        best.append(numpy.sum(population[0].results))
+        #population[0].train(trainingStocks,True)
 
-        for sample in population:
-            sample.reset()
+    util.printStockStats(trainingStocks)
 
-    util.graphResults(best)
-
+    util.graphResults(best, numpy.sum([stock.maxProfit() for stock in trainingStocks]))
 
 train()
