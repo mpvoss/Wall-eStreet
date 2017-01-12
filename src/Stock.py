@@ -4,7 +4,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
 from sqlalchemy import String
 from sqlalchemy.orm import relationship
-
+from sqlalchemy.sql import select
 import DatabaseService
 
 
@@ -16,7 +16,10 @@ class Stock(DatabaseService.Base):
     open = Column(Float)
     close = Column(Float)
     high = Column(Float)
-    parent = relationship("User", back_populates="interests")
+    low = Column(Float)
+    volumn = Column(Integer)
+    adj_close = Column(Float)
 
     def __repr__(self):
-        return "%s:%s" % (self.name, self.value)
+        return "%s:%s" % (self.ticker)
+

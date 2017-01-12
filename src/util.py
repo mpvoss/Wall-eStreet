@@ -7,6 +7,8 @@ import TrainingStock
 import csv
 import os
 
+import DatabaseService
+
 ''' Constants '''
 DATA_TIME_FRAME_DAYS = 90
 MAX_NUM_TICKERS = 20
@@ -166,3 +168,10 @@ def print_stock_stats(stocks):
 def write_output_result(best, optimal):
     print("Progression: " + str(best))
     print("Optimal: " + str(optimal))
+
+def populate_db():
+    session = DatabaseService.setup_db()
+
+    session.add()
+    session.commit()
+}
