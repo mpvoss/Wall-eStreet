@@ -6,37 +6,37 @@ import SellModel
 import util
 
 
-def dropBadStocks():
+def drop_bad_stocks():
     # TODO implement
     pass
 
 
-def sellStocks():
+def sell_stocks():
     # TODO implement
     pass
 
 
-def buyStocks():
+def buy_stocks():
     data = {}
 
     start = util.getStartTime()
     end = util.getCurrentTime()
-    tickers = util.loadTickers()
+    tickers = util.load_tickers()
 
     for ticker in tickers:
         data[ticker] = Scraper.lookup(ticker, start, end)
 
     for ticker in tickers:
-        if BuyModel.shouldBuy(ticker, data[ticker]):
+        if BuyModel.should_buy(ticker, data[ticker]):
             print("Buy " + ticker)
         else:
             print("Don't buy " + ticker);
 
 
 def run():
-    dropBadStocks()
-    sellStocks()
-    buyStocks()
+    drop_bad_stocks()
+    sell_stocks()
+    buy_stocks()
 
 
 run()

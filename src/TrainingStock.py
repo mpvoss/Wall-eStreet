@@ -1,13 +1,15 @@
+import math
 import numpy
 
-class TrainingStock:
-    def __init__(self, ticker, trainingData, validationData):
-        self.ticker = ticker
-        self.trainingData = trainingData
-        self.validationData = validationData
 
-    def setBoughtAt(self, boughtAt):
-        self.boughtAt = boughtAt
+class TrainingStock:
+    def __init__(self, ticker, training_data, validation_data):
+        self.ticker = ticker
+        self.trainingData = training_data
+        self.validationData = validation_data
+
+    def set_bought_at(self, bought_at):
+        self.boughtAt = bought_at
 
     def setSoldAt(self, soldAt):
         self.soldAt = soldAt
@@ -20,19 +22,27 @@ class TrainingStock:
         last = self.trainingData[-1]
         print("[{:5s}] Mean: {:6.2f}, Current: {:6.2f}".format(self.ticker, mean, last))
 
-    def maxProfit(self):
+    def max_profit(self):
         start = end = self.trainingData[-1]
 
         for val in self.validationData:
             end = max(end, val)
 
-        if start == 0:
-            return 0
-        else:
-            return(end - start)/start
 
-    def printDeriv(self):
+        val = 0
+
+        if (start-end) == 0:
+            val = 0
+        else:
+            val = (end - start) / start
+
+        if math.isnan(val):
+            print("nan found")
+
+
+        return val
+
+    def print_deriv(self):
         mean = numpy.mean(self.trainingData)
         last = self.trainingData[-1]
-        return ((last - mean)/mean)
-
+        return (last - mean) / mean

@@ -8,9 +8,9 @@ import csv
 import os
 
 ''' Constants '''
-DATA_TIMEFRAME_DAYS = 90
+DATA_TIME_FRAME_DAYS = 90
 MAX_NUM_TICKERS = 20
-MAX_HOLD_TIME_DAYS = 30*12
+MAX_HOLD_TIME_DAYS = 30 * 12
 MAX_GENERATIONS = 10
 GENERATION_SIZE = 100
 NUM_STOCKS = 500
@@ -18,118 +18,133 @@ MAX_HISTORY_DAYS = 365 * 5
 TRAIN_TIME_DAYS = 6 * 30
 
 # All percents
-#DELTA_MAX_LOSS = 1
-#DELTA_DESIRED_PROFIT = 2
-#DELTA_BUY_THRESHOLD = 2
+DELTA_MAX_LOSS = 50
+DELTA_DESIRED_PROFIT = 50
+DELTA_BUY_THRESHOLD = 50
 
-#INIT_MAX_LOSS = 2
-#INIT_DESIRED_PROFIT = 5
-#INIT_BUY_THRESHOLD = 1.1
-
-
-DELTA_MAX_LOSS = 5
-DELTA_DESIRED_PROFIT = 5
-DELTA_BUY_THRESHOLD = 5
-
-INIT_MAX_LOSS = 5
+INIT_MAX_LOSS = 10
 INIT_DESIRED_PROFIT = 10
-INIT_BUY_THRESHOLD = 0
+INIT_BUY_THRESHOLD = 10
+
+
+# DELTA_MAX_LOSS = 5
+# DELTA_DESIRED_PROFIT = 5
+# DELTA_BUY_THRESHOLD = 5
+#
+# INIT_MAX_LOSS = 5
+# INIT_DESIRED_PROFIT = 10
+# INIT_BUY_THRESHOLD = 0
 
 MUTATE_PROBABILITY = 0.6
 
 ''' Utility methods '''
-def prettyPercent(val):
+
+
+def pretty_percent(val):
     return '{:.3f}%'.format(val)
 
-def getDataFile():
+
+def get_data_file():
     val = os.path.join(os.path.dirname(__file__), '..', 'data', 'constituents.csv')
     return val
 
-def prettyDate(date):
+
+def pretty_date(date):
     return date.strftime("%B %Y")
 
-def getTrainingTimes():
-    startTimeframe = random.randrange(MAX_HISTORY_DAYS)
-    startSampleTime = datetime.now() - timedelta(startTimeframe)
-    endSampleTime = startSampleTime + timedelta(TRAIN_TIME_DAYS)
-    startTrainTime = endSampleTime
-    endTrainTime = startTrainTime + timedelta(MAX_HOLD_TIME_DAYS)
 
-    return (startSampleTime, endSampleTime, startTrainTime, endTrainTime)
+def get_training_times():
+    start_time_frame = random.randrange(MAX_HISTORY_DAYS)
+    start_sample_time = datetime.now() - timedelta(start_time_frame)
+    end_sample_time = start_sample_time + timedelta(TRAIN_TIME_DAYS)
+    start_train_time = end_sample_time
+    end_train_time = start_train_time + timedelta(MAX_HOLD_TIME_DAYS)
 
-def getTestTrainingTimes():
-    trainStart = datetime(2014,1,10)
-    trainEnd = trainStart + timedelta(TRAIN_TIME_DAYS)
-    validationStart = trainEnd
-    validationEnd = validationStart + timedelta(MAX_HOLD_TIME_DAYS)
-    return trainStart, trainEnd, validationStart, validationEnd
+    return start_sample_time, end_sample_time, start_train_time, end_train_time
 
 
-def loadTrainingStocks(startSampleTime, endSampleTime, startTrainTime, endTrainTime):
+def get_test_training_times():
+    train_start = datetime(2014, 1, 10)
+    train_end = train_start + timedelta(TRAIN_TIME_DAYS)
+    validation_start = train_end
+    validation_end = validation_start + timedelta(MAX_HOLD_TIME_DAYS)
+    return train_start, train_end, validation_start, validation_end
+
+
+def load_training_stocks(start_sample_time, end_sample_time, start_train_time, end_train_time):
     stocks = []
-    with open(getDataFile()) as csvfile:
-        reader = csv.DictReader(csvfile)
+    with open(get_data_file()) as csv_file:
+        reader = csv.DictReader(csv_file)
         tickers = [row['Symbol'] for row in reader]
-#        tickers = random.sample(tickers, MAX_NUM_TICKERS)
+        #        tickers = random.sample(tickers, MAX_NUM_TICKERS)
         tickers = tickers[0:MAX_NUM_TICKERS]
 
         # Cols are Symbol, Name, Sector
         try:
-            trainingData = Scraper.lookup(tickers, startSampleTime, endSampleTime)['Close']
-            validationData = Scraper.lookup(tickers, startTrainTime, endTrainTime)['Close']
-            stocks = [TrainingStock.TrainingStock(company, trainingData[company],validationData[company]) for company in tickers]
+            training_data = Scraper.lookup(tickers, start_sample_time, end_sample_time)
+            validation_data = Scraper.lookup(tickers, start_train_time, end_train_time)['Close']
+            stocks = [TrainingStock.TrainingStock(company, training_data[company], validation_data[company]) for company
+                      in tickers]
 
         except RemoteDataError:
             print("Error reading stock data, skipping")
     return stocks
 
-def printGreeting():
-    print(centerText("-"))
-    print(centerTextNoWrap("Wall-e Street Stock Market AI"))
-    print(centerText("-"))
 
-def centerText(text):
+def print_greeting():
+    print(center_text("-"))
+    print(center_text_no_wrap("Wall-e Street Stock Market AI"))
+    print(center_text("-"))
+
+
+def center_text(text):
     return '{:-^80}'.format(text)
 
-def centerTextNoWrap(text):
+
+def center_text_no_wrap(text):
     return '{:^80}'.format(text)
 
-def printStockInfo(stocks):
+
+def print_stock_info(stocks):
     print("\n")
-    print(centerTextNoWrap("Stock data used in this experiment"))
+    print(center_text_no_wrap("Stock data used in this experiment"))
     for stock in stocks:
         stock.printStats()
 
-def computeReturn(boughtAt, soldAt):
-    return (soldAt - boughtAt) / boughtAt
 
-def loadTickers():
+def compute_return(bought_at, sold_at):
+    return (sold_at - bought_at) / bought_at
+
+
+def load_tickers():
     tickers = []
-    with open(getDataFile()) as csvfile:
-        reader = csv.DictReader(csvfile)
+    with open(get_data_file()) as csv_file:
+        reader = csv.DictReader(csv_file)
         for row in reader:
             # Cols are Symbol, Name, Sector
             if len(tickers) < MAX_NUM_TICKERS:
                 tickers.append(row['Symbol'])
     return tickers
 
-def mutateVal(baseVal, delta):
+
+def mutate_val(base_val, delta):
     if random.random() < MUTATE_PROBABILITY:
         sign = random.choice([-1, 1])
-        return sign * random.random() * delta + baseVal
+        return sign * random.random() * delta + base_val
     else:
-        return baseVal
+        return base_val
 
-def printScoreboard(agents):
-    print(centerText("Scoreboard start"))
+
+def print_scoreboard(agents):
+    print(center_text("Scoreboard start"))
     for agent in agents:
-        print(agent.printParameters() + ": score " + str(agent.score))
-    print(centerText("Scoreboard end"))
+        print(agent.print_parameters() + ": score " + str(agent.score))
+    print(center_text("Scoreboard end"))
 
 
-def graphResults(results,optimal):
-    plt.plot(results, c='r', ls='-',label="Performance")
-    plt.axhline(optimal,0,1, c='b', ls=':', label="Theoretical limit")
+def graph_results(results, optimal):
+    plt.plot(results, c='r', ls='-', label="Performance")
+    plt.axhline(optimal, 0, 1, c='b', ls=':', label="Theoretical limit")
 
     plt.legend(loc='upper left');
     plt.ylabel('Return %')
@@ -138,11 +153,16 @@ def graphResults(results,optimal):
     plt.show()
 
 
-def printStockStats(stocks):
-    b = [(stock.ticker,  stock.maxProfit(), stock.printDeriv()) for stock in stocks]
+def print_stock_stats(stocks):
+    b = [(stock.ticker, stock.max_profit(), stock.print_deriv()) for stock in stocks]
     b.sort(key=lambda tup: tup[2])
     for a in b:
         print("{} max prof: {}, deriv: {}".format(a[0], a[1], a[2]))
-#test = [1,2,3,4,5,6]
-##op = [4 ]
-#graphResults(test,op)
+        # test = [1,2,3,4,5,6]
+        ##op = [4 ]
+        # graphResults(test,op)
+
+
+def write_output_result(best, optimal):
+    print("Progression: " + str(best))
+    print("Optimal: " + str(optimal))
