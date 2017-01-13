@@ -3,6 +3,7 @@ from pandas_datareader._utils import RemoteDataError
 import matplotlib.pyplot as plt
 import Scraper
 import random
+from Stock import Stock
 import TrainingStock
 import csv
 import os
@@ -174,4 +175,39 @@ def populate_db():
 
     session.add()
     session.commit()
-}
+
+def load_stocks(stocks, start, end):
+    session = DatabaseService.setup_db()
+    in_db = session.query(Stock).filter(Stock.ticker.in_(stocks)).filter(Stock.timestamp >= start).filter(Stock.timestamp <= end).all()
+
+    for row in in_db:
+        stocks.remove(row.ticker)
+
+    print ("Requested stocks not in database")
+    print (stocks)
+    print ("Requested stocks found in database")
+    print(in_db)
+
+    test = session.query(Stock).all()
+    print ("Dump of all stocks in database")
+    for a in test:
+        print(a)
+
+
+    not_in_db = Scraper.lookup(['a','b','c','d'],start,end)
+    print(not_in_db)
+
+    x = not_in_db.ix["Ticker"]
+    print(x)
+    # for company in not_in_db:
+    #     print ("company " + str(company))
+    #     for date in not_in_db[company]:
+    #         print (date)
+
+    # Check if already in table
+    #in_database =
+    # If not, lookup
+
+    pass
+
+load_stocks(['a', 'b'], '2000-01-01', '2002-01-01')
