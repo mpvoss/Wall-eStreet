@@ -194,11 +194,31 @@ def load_stocks(stocks, start, end):
         print(a)
 
 
-    not_in_db = Scraper.lookup(['a','b','c','d'],start,end)
-    print(not_in_db)
+    panel = Scraper.lookup(stocks,start,end)
+    for date in panel.major_axis:
+        for x in panel.minor_axis:
+            print x
 
-    x = not_in_db.ix["Ticker"]
-    print(x)
+        frame = panel.loc[:,date]
+        for stock in stocks:
+            high = frame["High"][stock]
+            low = frame["Low"][stock]
+            open = frame["Open"][stock]
+            close = frame["Close"][stock]
+            vol = frame["Close"][stock]
+            adj_close = frame["Adj Close"][stock]
+            ticker = stock
+            s = Stock(ticker, high, low, open, close, vol, adj_close, date)
+            if not s.is_nan():
+                session.add(s)
+            # print("{}: high[{}] low[{}] date[{}]".format(stock, hi, low, date))
+
+    session.commit()
+
+#    print(not_in_db)
+#    print(not_in_db.to_frame())
+#    x = not_in_db.ix["Ticker"]
+ #   print(x)
     # for company in not_in_db:
     #     print ("company " + str(company))
     #     for date in not_in_db[company]:
@@ -210,4 +230,5 @@ def load_stocks(stocks, start, end):
 
     pass
 
-load_stocks(['a', 'b'], '2000-01-01', '2002-01-01')
+load_stocks(['GOOGL','AAPL'], '2000-01-01', '2003-01-01')
+print("Done")
