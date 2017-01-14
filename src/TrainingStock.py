@@ -46,3 +46,4 @@ class TrainingStock:
         mean = numpy.mean(self.trainingData)
         last = self.trainingData[-1]
         return (last - mean) / mean
+

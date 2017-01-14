@@ -1,7 +1,10 @@
+import random
+
 import AI
 import util
 import operator
 import numpy
+import copy
 
 
 def load_population(baseline, generation, size):
@@ -16,7 +19,7 @@ def load_default_ai():
     init_desired_profit = util.INIT_DESIRED_PROFIT
     init_buy_threshold = util.INIT_BUY_THRESHOLD
 
-    return AI.AI(init_max_loss, init_desired_profit, init_buy_threshold)
+    return AI.AI(init_max_loss, init_desired_profit, init_buy_threshold, 0)
 
 
 def print_progress(population, count):
@@ -37,8 +40,12 @@ def update_population(population, generation):
 
 
 def print_training_times(start_sample_time, end_sample_time, start_train_time, end_train_time):
-    print("Training time period used: " + util.pretty_date(start_sample_time) + " to " + util.pretty_date(end_sample_time))
-    print("Validation time period used: " + util.pretty_date(start_train_time) + " to " + util.pretty_date(end_train_time))
+    print(
+        "Training time period used: " + util.pretty_date(start_sample_time) + " to " + util.pretty_date(
+            end_sample_time))
+    print(
+        "Validation time period used: " + util.pretty_date(start_train_time) + " to " + util.pretty_date(
+            end_train_time))
 
 
 def train():
@@ -50,7 +57,8 @@ def train():
     a, b, c, d = util.get_test_training_times()
 
     print_training_times(a, b, c, d)
-    training_stocks = util.load_training_stocks(a, b, c, d)
+    # training_stocks = util.load_training_stocks(a, b, c, d)
+    training_stocks = util.query_stocks(random.sample(util.load_tickers(), 20), '1995-01-01', '1998-11-01')
     util.print_stock_info(training_stocks)
 
     best = []
@@ -66,19 +74,21 @@ def train():
         #        util.printScoreboard(population)
         print_progress(population, generation)
 
-        population = update_population(population[0:2], generation)
+        top = [ai for ai in population if ai.score == population[0].score]
+        if len(top) == 1:
+            top.append(population[1])
 
-        best.append(numpy.sum(population[0].results))
+        population = update_population(random.sample(top, 2), generation)
+
+        best.append(copy.deepcopy(population[0]))
         # population[0].train(training_stocks,True)
 
-    util.print_stock_stats(training_stocks)
-
     bestList = [stock.max_profit() for stock in training_stocks]
-    print("Best list: ")
-    print(bestList)
     optimal = numpy.sum(bestList)
     # util.graph_results(best, optimal)
     util.write_output_result(best, optimal)
+
+    print("Gen 1 score: %s, Last gen score: %s" % (best[0].score, best[-1].score))
 
 
 train()

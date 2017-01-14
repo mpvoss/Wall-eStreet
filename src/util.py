@@ -5,6 +5,7 @@ import Scraper
 import random
 from Stock import Stock
 import TrainingStock
+import time
 import csv
 import os
 
@@ -14,21 +15,20 @@ import DatabaseService
 DATA_TIME_FRAME_DAYS = 90
 MAX_NUM_TICKERS = 500
 MAX_HOLD_TIME_DAYS = 30 * 12
-MAX_GENERATIONS = 10
+MAX_GENERATIONS = 300
 GENERATION_SIZE = 100
 NUM_STOCKS = 500
 MAX_HISTORY_DAYS = 365 * 5
 TRAIN_TIME_DAYS = 6 * 30
 
 # All percents
-DELTA_MAX_LOSS = 50
-DELTA_DESIRED_PROFIT = 50
-DELTA_BUY_THRESHOLD = 50
+DELTA_MAX_LOSS = 20
+DELTA_DESIRED_PROFIT = 20
+DELTA_BUY_THRESHOLD = 20
 
-INIT_MAX_LOSS = 10
-INIT_DESIRED_PROFIT = 10
-INIT_BUY_THRESHOLD = 10
-
+INIT_MAX_LOSS = 15
+INIT_DESIRED_PROFIT = -50
+INIT_BUY_THRESHOLD = 50
 
 # DELTA_MAX_LOSS = 5
 # DELTA_DESIRED_PROFIT = 5
@@ -167,8 +167,12 @@ def print_stock_stats(stocks):
 
 
 def write_output_result(best, optimal):
-    print("Progression: " + str(best))
-    print("Optimal: " + str(optimal))
+    f = open("../data/top_strains.csv", 'w+')
+    f.write("strain_id,generation,avg_profit\n")
+    for strain in best:
+        f.write(strain.build_thumbprint() + "\n")
+    f.close()
+
 
 def populate_db():
     session = DatabaseService.setup_db()
@@ -176,56 +180,65 @@ def populate_db():
     session.add()
     session.commit()
 
+
 def load_stocks(stocks, start, end):
+    start_time = time.time()
     session = DatabaseService.setup_db()
-    in_db = session.query(Stock).filter(Stock.ticker.in_(stocks)).filter(Stock.timestamp >= start).filter(Stock.timestamp <= end).all()
+    # in_db = session.query(Stock).filter(Stock.ticker.in_(stocks)).filter(Stock.timestamp >= start).filter(Stock.timestamp <= end).all()
 
-    # for row in in_db:#
-    #     stocks.remove(row.ticker)
+    # removed = []
+    # for row in in_db:
+    #     if row.ticker not in removed:
+    #         stocks.remove(row.ticker)
+    #         removed.append(row.ticker)
 
-    print ("Requested stocks not in database")
-    print (stocks)
-    print ("Requested stocks found in database")
-    print(in_db)
+    if len(stocks) > 0:
+        panel = Scraper.lookup(stocks, start, end)
+        for date in panel.major_axis:
+            for company in panel.minor_axis:
+                frame = panel.loc[:, date, company]
 
-    test = session.query(Stock).all()
-    print ("Dump of all stocks in database")
-    for a in test:
-        print(a)
+                high = frame["High"]
+                low = frame["Low"]
+                open = frame["Open"]
+                close = frame["Close"]
+                vol = frame["Volume"]
+                adj_close = frame["Adj Close"]
+                s = Stock(company, high, low, open, close, vol, adj_close, date)
+                if not s.is_nan():
+                    session.add(s)
+                    # print("{}: high[{}] low[{}] date[{}]".format(stock, hi, low, date))
+
+        session.commit()
+    end_time = time.time()
+    print("Time taken to load stocks: %s seconds" % (end_time - start_time))
 
 
-    panel = Scraper.lookup(stocks,start,end)
-    for date in panel.major_axis:
-        for company in panel.minor_axis:
-            frame = panel.loc[:,date,company]
+def query_stocks(stocks, start, end):
+    session = DatabaseService.setup_db()
+    rows = session.query(Stock.ticker, Stock.close, Stock.timestamp).filter(Stock.ticker.in_(stocks)).filter(
+        Stock.timestamp >= start).filter(
+        Stock.timestamp <= end).order_by(Stock.ticker).order_by(Stock.timestamp.asc()).all()
 
-            high = frame["High"]
-            low = frame["Low"]
-            open = frame["Open"]
-            close = frame["Close"]
-            vol = frame["Volume"]
-            adj_close = frame["Adj Close"]
-            s = Stock(company, high, low, open, close, vol, adj_close, date)
-            if not s.is_nan():
-                session.add(s)
-            # print("{}: high[{}] low[{}] date[{}]".format(stock, hi, low, date))
+    ticker = None
+    prices = []
+    training_stocks = []
+    for row in rows:
+        if ticker == None:
+            ticker = row.ticker
+        elif row.ticker != ticker:
+            training_stocks.append(
+                TrainingStock.TrainingStock(ticker, prices[:len(prices) / 2], prices[len(prices) / 2:]))
+            ticker = row.ticker
+            prices = []
+        else:
+            prices.append(row.close)
+    training_stocks.append(TrainingStock.TrainingStock(ticker, prices[:len(prices) / 2], prices[len(prices) / 2:]))
 
-    session.commit()
+    for s in training_stocks:
+        s.printStats()
 
-#    print(not_in_db)
-#    print(not_in_db.to_frame())
-#    x = not_in_db.ix["Ticker"]
- #   print(x)
-    # for company in not_in_db:
-    #     print ("company " + str(company))
-    #     for date in not_in_db[company]:
-    #         print (date)
+    return training_stocks
 
-    # Check if already in table
-    #in_database =
-    # If not, lookup
-
-    pass
-
-load_stocks(load_tickers(), '2000-02-01', '2014-02-10')
+query_stocks(load_tickers(), '2000-01-01', '2000-01-09')
 print("Done")
