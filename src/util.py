@@ -12,7 +12,7 @@ import DatabaseService
 
 ''' Constants '''
 DATA_TIME_FRAME_DAYS = 90
-MAX_NUM_TICKERS = 20
+MAX_NUM_TICKERS = 500
 MAX_HOLD_TIME_DAYS = 30 * 12
 MAX_GENERATIONS = 10
 GENERATION_SIZE = 100
@@ -180,8 +180,8 @@ def load_stocks(stocks, start, end):
     session = DatabaseService.setup_db()
     in_db = session.query(Stock).filter(Stock.ticker.in_(stocks)).filter(Stock.timestamp >= start).filter(Stock.timestamp <= end).all()
 
-    for row in in_db:
-        stocks.remove(row.ticker)
+    # for row in in_db:#
+    #     stocks.remove(row.ticker)
 
     print ("Requested stocks not in database")
     print (stocks)
@@ -196,19 +196,16 @@ def load_stocks(stocks, start, end):
 
     panel = Scraper.lookup(stocks,start,end)
     for date in panel.major_axis:
-        for x in panel.minor_axis:
-            print x
+        for company in panel.minor_axis:
+            frame = panel.loc[:,date,company]
 
-        frame = panel.loc[:,date]
-        for stock in stocks:
-            high = frame["High"][stock]
-            low = frame["Low"][stock]
-            open = frame["Open"][stock]
-            close = frame["Close"][stock]
-            vol = frame["Close"][stock]
-            adj_close = frame["Adj Close"][stock]
-            ticker = stock
-            s = Stock(ticker, high, low, open, close, vol, adj_close, date)
+            high = frame["High"]
+            low = frame["Low"]
+            open = frame["Open"]
+            close = frame["Close"]
+            vol = frame["Volume"]
+            adj_close = frame["Adj Close"]
+            s = Stock(company, high, low, open, close, vol, adj_close, date)
             if not s.is_nan():
                 session.add(s)
             # print("{}: high[{}] low[{}] date[{}]".format(stock, hi, low, date))
@@ -230,5 +227,5 @@ def load_stocks(stocks, start, end):
 
     pass
 
-load_stocks(['GOOGL','AAPL'], '2000-01-01', '2003-01-01')
+load_stocks(load_tickers(), '2000-02-01', '2014-02-10')
 print("Done")
