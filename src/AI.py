@@ -43,13 +43,13 @@ class AI:
                 break
         # Didn't sell it due to large gain/loss. Force sale at end of simulation
         if ret_val == 0:
-            ret_val = train_data[-1]
+            ret_val = util.compute_return(bought_at, train_data[-1])
 
-        diff = util.compute_return(bought_at, train_data[-1])
+        #diff = util.compute_return(bought_at, train_data[-1])
         if debug:
             print("Bought {} at ${} and sold at ${} for {} return ".format(ticker, bought_at, ret_val,
-                                                                           util.pretty_percent(100 * diff)))
-        return diff
+                                                                           util.pretty_percent(100 * ret_val)))
+        return ret_val
 
     def analyze(self, stock, debug):
         if BuyModel.should_buy(self, stock.trainingData):
@@ -76,13 +76,14 @@ class AI:
         print(self.print_parameters())
         if len(self.results) > 0:
             score = self.score * 100
-            print("   %d stocks purchased, average return: %.3f%%" % (len(self.results), numpy.mean(self.results) * 100))
+            print("   %d stocks purchased, average return: %.3f%%" % (len(self.results), self.score))
         else:
             print("   No stocks purchased. Score: {}".format(self.score))
 
-    def mutate(self):
-        # Linear mutation fall off towards end of simulation. Disabled for now
-        factor = 1 - self.generation / util.MAX_GENERATIONS
+    def mutate(self, generation):
+        # Linear mutation fall off towards end of simulation.
+        #factor = 1 - (float(generation) / float(util.MAX_GENERATIONS))
+        factor = 1
         delta_max_loss = util.DELTA_MAX_LOSS * factor
         delta_desired_profit = util.DELTA_DESIRED_PROFIT * factor
         delta_buy_threshold = util.DELTA_BUY_THRESHOLD * factor

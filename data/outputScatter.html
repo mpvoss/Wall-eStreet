@@ -86,6 +86,15 @@ d3.csv("top_strains.csv", function(error, data) {
   xScale.domain([d3.min(data, xValue)-1, d3.max(data, xValue)+1]);
   yScale.domain([d3.min(data, yValue)-1, d3.max(data, yValue)+1]);
 
+  // Optimal
+  <!--svg.append("line").attr("class", "line")-->
+   <!--.attr({ x1: 0, y1: 0, //start of the line-->
+           <!--x2: width, y2: 2  //end of the line-->
+         <!--}).attr("stroke-width", 1)-->
+  <!--.attr("stroke", "black");;-->
+
+
+
   // x-axis
   svg.append("g")
       .attr("class", "x axis")
@@ -134,27 +143,7 @@ d3.csv("top_strains.csv", function(error, data) {
                .style("opacity", 0);
       });
 
-  // draw legend
-  var legend = svg.selectAll(".legend")
-      .data(color.domain())
-    .enter().append("g")
-      .attr("class", "legend")
-      .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
 
-  // draw legend colored rectangles
-  legend.append("rect")
-      .attr("x", width - 18)
-      .attr("width", 18)
-      .attr("height", 18)
-      .style("fill", color);
-
-  // draw legend text
-  legend.append("text")
-      .attr("x", width - 24)
-      .attr("y", 9)
-      .attr("dy", ".35em")
-      .style("text-anchor", "end")
-      .text(function(d) { return d;})
 });
 
 </script>

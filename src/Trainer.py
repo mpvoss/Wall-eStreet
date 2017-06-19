@@ -5,12 +5,13 @@ import util
 import operator
 import numpy
 import copy
+import cProfile
 
 
 def load_population(baseline, generation, size):
     samples = []
     for i in range(size):
-        samples.append(baseline.mutate())
+        samples.append(baseline.mutate(generation))
     return samples
 
 
@@ -39,13 +40,10 @@ def update_population(population, generation):
     return population
 
 
-def print_training_times(start_sample_time, end_sample_time, start_train_time, end_train_time):
+def print_training_times(start_sample_time, end_sample_time):
     print(
         "Training time period used: " + util.pretty_date(start_sample_time) + " to " + util.pretty_date(
             end_sample_time))
-    print(
-        "Validation time period used: " + util.pretty_date(start_train_time) + " to " + util.pretty_date(
-            end_train_time))
 
 
 def train():
@@ -53,13 +51,9 @@ def train():
     util.print_greeting()
     population = load_population(load_default_ai(), 0, util.GENERATION_SIZE)
 
-    #    a, b, c, d = util.getTrainingTimes()
-    a, b, c, d = util.get_test_training_times()
+    train_start, train_end = util.get_test_training_times()
 
-    print_training_times(a, b, c, d)
-    # training_stocks = util.load_training_stocks(a, b, c, d)
-    training_stocks = util.query_stocks(random.sample(util.load_tickers(), 20), '1995-01-01', '1998-11-01')
-    util.print_stock_info(training_stocks)
+    training_stocks = util.query_stocks(random.sample(util.load_tickers(), 20), train_start, train_end)
 
     best = []
 
@@ -85,10 +79,14 @@ def train():
 
     bestList = [stock.max_profit() for stock in training_stocks]
     optimal = numpy.sum(bestList)
-    # util.graph_results(best, optimal)
+    #util.graph_results(best, optimal)
     util.write_output_result(best, optimal)
 
+    print_training_times(train_start, train_end)
     print("Gen 1 score: %s, Last gen score: %s" % (best[0].score, best[-1].score))
+    util.print_stock_info(training_stocks)
+    print("Optimal return: %s" % (numpy.mean(bestList)*100))
 
 
+#cProfile.run('train()')
 train()

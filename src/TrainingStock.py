@@ -18,9 +18,7 @@ class TrainingStock:
         return (self.soldAt - self.boughtAt) / self.boughtAt
 
     def printStats(self):
-        mean = numpy.mean(self.trainingData)
-        last = self.trainingData[-1]
-        print("[{:5s}] Mean: {:6.2f}, Current: {:6.2f}".format(self.ticker, mean, last))
+        print("[{:5s}] Optimal: {:6.2f}".format(self.ticker, self.max_profit()))
 
     def max_profit(self):
         start = end = self.trainingData[-1]

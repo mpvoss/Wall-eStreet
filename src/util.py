@@ -15,20 +15,21 @@ import DatabaseService
 DATA_TIME_FRAME_DAYS = 90
 MAX_NUM_TICKERS = 500
 MAX_HOLD_TIME_DAYS = 30 * 12
-MAX_GENERATIONS = 300
-GENERATION_SIZE = 100
+MAX_GENERATIONS = 250
+GENERATION_SIZE = 40
 NUM_STOCKS = 500
 MAX_HISTORY_DAYS = 365 * 5
 TRAIN_TIME_DAYS = 6 * 30
+TRAIN_TIME_YEARS = 4
 
 # All percents
-DELTA_MAX_LOSS = 20
-DELTA_DESIRED_PROFIT = 20
-DELTA_BUY_THRESHOLD = 20
+DELTA_MAX_LOSS = 10
+DELTA_DESIRED_PROFIT = 10
+DELTA_BUY_THRESHOLD = 10
 
-INIT_MAX_LOSS = 15
-INIT_DESIRED_PROFIT = -50
-INIT_BUY_THRESHOLD = 50
+INIT_MAX_LOSS = 3
+INIT_DESIRED_PROFIT = 8
+INIT_BUY_THRESHOLD = -5
 
 # DELTA_MAX_LOSS = 5
 # DELTA_DESIRED_PROFIT = 5
@@ -67,11 +68,11 @@ def get_training_times():
 
 
 def get_test_training_times():
-    train_start = datetime(2014, 1, 10)
-    train_end = train_start + timedelta(TRAIN_TIME_DAYS)
-    validation_start = train_end
-    validation_end = validation_start + timedelta(MAX_HOLD_TIME_DAYS)
-    return train_start, train_end, validation_start, validation_end
+    train_start = datetime(2000, 1, 10)
+    # Offset
+    train_start = train_start + timedelta(random.random()*30*12*5)
+    train_end = train_start + timedelta(30*12*4)
+    return train_start, train_end
 
 
 def load_training_stocks(start_sample_time, end_sample_time, start_train_time, end_train_time):
@@ -240,5 +241,5 @@ def query_stocks(stocks, start, end):
 
     return training_stocks
 
-query_stocks(load_tickers(), '2000-01-01', '2000-01-09')
-print("Done")
+# query_stocks(load_tickers(), '2000-01-01', '2000-01-09')
+# print("Done")
