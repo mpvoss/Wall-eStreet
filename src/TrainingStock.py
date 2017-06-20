@@ -37,7 +37,6 @@ class TrainingStock:
         if math.isnan(val):
             print("nan found")
 
-
         return val
 
     def print_deriv(self):

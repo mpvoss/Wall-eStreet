@@ -27,6 +27,7 @@ def print_progress(population, count):
     print(util.center_text("Generation " + str(count)))
     population[0].print_performance()
     population[1].print_performance()
+
     # Uncomment to see the worst in each batch, ensure someone is losing money
     # population[util.GENERATION_SIZE-1].printPerformance()
 
@@ -37,6 +38,9 @@ def update_population(population, generation):
     population += load_population(population[1], generation, size / 3)
     population += load_population(load_default_ai(), generation, size / 3)
 
+    population[0].generation = generation
+    population[1].generation = generation
+
     return population
 
 
@@ -44,6 +48,8 @@ def print_training_times(start_sample_time, end_sample_time):
     print(
         "Training time period used: " + util.pretty_date(start_sample_time) + " to " + util.pretty_date(
             end_sample_time))
+
+
 
 
 def train():
@@ -75,18 +81,23 @@ def train():
         population = update_population(random.sample(top, 2), generation)
 
         best.append(copy.deepcopy(population[0]))
-        # population[0].train(training_stocks,True)
 
-    bestList = [stock.max_profit() for stock in training_stocks]
-    optimal = numpy.sum(bestList)
-    #util.graph_results(best, optimal)
+    best_list = [stock.max_profit() for stock in training_stocks]
+    optimal = numpy.sum(best_list)
+
     util.write_output_result(best, optimal)
+
+    util.print_stock_info(training_stocks)
 
     print_training_times(train_start, train_end)
     print("Gen 1 score: %s, Last gen score: %s" % (best[0].score, best[-1].score))
-    util.print_stock_info(training_stocks)
-    print("Optimal return: %s" % (numpy.mean(bestList)*100))
+
+    return best[-1].report(training_stocks)
 
 
-#cProfile.run('train()')
-train()
+info = []
+for i in range(1):
+    info.append(train())
+
+for line in info:
+    print(line)
